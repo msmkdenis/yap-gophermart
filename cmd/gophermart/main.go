@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+
+	"github.com/msmkdenis/yap-gophermart/internal/app"
+)
 
 func main() {
-	fmt.Println("Hello, World Again!")
+	app.GophermartRun()
 }
