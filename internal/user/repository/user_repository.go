@@ -1,4 +1,4 @@
-package user_repository
+package userrepository
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib" // required for handling postgres errors
 	"go.uber.org/zap"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
@@ -36,13 +36,11 @@ func NewPostgresUserRepository(postgresPool *db.PostgresPool, logger *zap.Logger
 }
 
 func (r *PostgresUserRepository) Insert(ctx context.Context, user model.User) error {
-
 	_, err := r.PostgresPool.DB.Exec(ctx, insertUser, user.ID, user.Login, user.Password)
 
 	var e *pgconn.PgError
 	if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
 		return apperrors.ErrLoginAlreadyExists
-
 	}
 
 	return err

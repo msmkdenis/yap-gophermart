@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -142,6 +143,11 @@ func (s *UserHandlersSuite) TestRegisterUser() {
 			switch test.expectedCode {
 			case http.StatusOK:
 				cookie := w.Result().Cookies()[0]
+				defer func(Body io.ReadCloser) {
+					errCloser := Body.Close()
+					require.NoError(t, errCloser)
+				}(w.Result().Body)
+
 				assert.NotEmpty(t, cookie)
 				assert.Equal(t, test.expectedCookieName, cookie.Name)
 
