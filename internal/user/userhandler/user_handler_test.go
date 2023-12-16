@@ -1,8 +1,8 @@
-package handler
+package userhandler
 
 import (
 	"encoding/json"
-	"io"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -18,7 +18,7 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	mock "github.com/msmkdenis/yap-gophermart/internal/mocks"
-	"github.com/msmkdenis/yap-gophermart/internal/user/handler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
@@ -95,7 +95,7 @@ func (s *UserHandlersSuite) TestRegisterUser() {
 			expectedCookieName: cfgMock.TokenName,
 		},
 		{
-			name:         "BadRequest - invalid request",
+			name:         "BadRequest - not application/json",
 			method:       http.MethodPost,
 			header:       map[string][]string{"Content-Type": {"application/json"}},
 			body:         string(invalidRegisterRequestTaskJSON),
@@ -143,19 +143,144 @@ func (s *UserHandlersSuite) TestRegisterUser() {
 			switch test.expectedCode {
 			case http.StatusOK:
 				cookie := w.Result().Cookies()[0]
-				defer func(Body io.ReadCloser) {
-					errCloser := Body.Close()
-					require.NoError(t, errCloser)
-				}(w.Result().Body)
+				errClose := w.Result().Body.Close()
+				assert.NoError(t, errClose)
 
 				assert.NotEmpty(t, cookie)
 				assert.Equal(t, test.expectedCookieName, cookie.Name)
 
-				login, errCookieParse := s.h.jwtManager.GetUserID(cookie.Value)
+				login, errCookieParse := s.h.jwtManager.GetUserLogin(cookie.Value)
 				assert.NoError(t, errCookieParse)
 				assert.Equal(t, test.expectedLogin, login)
 			default:
 				cookies := w.Result().Cookies()
+				errClose := w.Result().Body.Close()
+				assert.NoError(t, errClose)
+
+				assert.Empty(t, cookies)
+			}
+		})
+	}
+}
+
+func (s *UserHandlersSuite) TestLoginUser() {
+	invalidLoginRequest := dto.UserLoginRequest{
+		Login:    "awesome_login",
+		Password: "",
+	}
+
+	validLoginRequest := dto.UserLoginRequest{
+		Login:    "awesome_login",
+		Password: "awesome_password",
+	}
+
+	invalidLoginRequestJSON, err := json.Marshal(invalidLoginRequest)
+	require.NoError(s.T(), err)
+
+	validLoginRequestJSON, err := json.Marshal(validLoginRequest)
+	require.NoError(s.T(), err)
+
+	testCases := []struct {
+		name               string
+		method             string
+		header             http.Header
+		body               string
+		path               string
+		prepare            func()
+		expectedCode       int
+		expectedBody       string
+		expectedLogin      string
+		expectedCookieName string
+	}{
+		{
+			name:   "Success - 200 OK",
+			method: http.MethodPost,
+			header: map[string][]string{"Content-Type": {"application/json"}},
+			body:   string(validLoginRequestJSON),
+			path:   "http://localhost:8000/api/user/login",
+			prepare: func() {
+				s.userService.EXPECT().Login(gomock.Any(), gomock.Any()).Times(1).Return(nil)
+			},
+			expectedCode:       http.StatusOK,
+			expectedBody:       "",
+			expectedLogin:      validLoginRequest.Login,
+			expectedCookieName: cfgMock.TokenName,
+		},
+		{
+			name:         "BadRequest - invalid request",
+			method:       http.MethodPost,
+			header:       map[string][]string{"Content-Type": {"application/json"}},
+			body:         string(invalidLoginRequestJSON),
+			path:         "http://localhost:8000/api/user/login",
+			expectedCode: http.StatusBadRequest,
+			expectedBody: "Invalid request data",
+		},
+		{
+			name:         "BadRequest - not application/json",
+			method:       http.MethodPost,
+			header:       map[string][]string{"Content-Type": {""}},
+			body:         string(invalidLoginRequestJSON),
+			path:         "http://localhost:8000/api/user/login",
+			expectedCode: http.StatusUnsupportedMediaType,
+			expectedBody: "Content-Type header is not application/json",
+		},
+		{
+			name:   "Non unique login - 409 Status unauthorized",
+			method: http.MethodPost,
+			header: map[string][]string{"Content-Type": {"application/json"}},
+			body:   string(validLoginRequestJSON),
+			path:   "http://localhost:8000/api/user/login",
+			prepare: func() {
+				s.userService.EXPECT().Login(gomock.Any(), gomock.Any()).Times(1).Return(apperrors.ErrInvalidPassword)
+			},
+			expectedCode: http.StatusUnauthorized,
+			expectedBody: "",
+		},
+		{
+			name:   "Unknown error - 500 Status internal server error",
+			method: http.MethodPost,
+			header: map[string][]string{"Content-Type": {"application/json"}},
+			body:   string(validLoginRequestJSON),
+			path:   "http://localhost:8000/api/user/login",
+			prepare: func() {
+				s.userService.EXPECT().Login(gomock.Any(), gomock.Any()).Times(1).Return(errors.New("unknown error"))
+			},
+			expectedCode: http.StatusInternalServerError,
+			expectedBody: "",
+		},
+	}
+
+	for _, test := range testCases {
+		s.T().Run(test.name, func(t *testing.T) {
+			if test.prepare != nil {
+				test.prepare()
+			}
+
+			request := httptest.NewRequest(test.method, test.path, strings.NewReader(test.body))
+			request.Header.Set("Content-Type", test.header.Get("Content-Type"))
+			w := httptest.NewRecorder()
+			s.echo.ServeHTTP(w, request)
+
+			assert.Equal(t, test.expectedCode, w.Code)
+			assert.Equal(t, test.expectedBody, w.Body.String())
+
+			switch test.expectedCode {
+			case http.StatusOK:
+				cookie := w.Result().Cookies()[0]
+				errClose := w.Result().Body.Close()
+				assert.NoError(t, errClose)
+
+				assert.NotEmpty(t, cookie)
+				assert.Equal(t, test.expectedCookieName, cookie.Name)
+
+				login, errCookieParse := s.h.jwtManager.GetUserLogin(cookie.Value)
+				assert.NoError(t, errCookieParse)
+				assert.Equal(t, test.expectedLogin, login)
+			default:
+				cookies := w.Result().Cookies()
+				errClose := w.Result().Body.Close()
+				assert.NoError(t, errClose)
+
 				assert.Empty(t, cookies)
 			}
 		})

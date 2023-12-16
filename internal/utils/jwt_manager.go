@@ -52,7 +52,7 @@ func (j *JWTManager) BuildJWTString(userLogin string) (string, error) {
 	return tokenString, nil
 }
 
-func (j *JWTManager) GetUserID(tokenString string) (string, error) {
+func (j *JWTManager) GetUserLogin(tokenString string) (string, error) {
 	claims := &claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {

@@ -15,9 +15,13 @@ import (
 
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	db "github.com/msmkdenis/yap-gophermart/internal/database"
-	"github.com/msmkdenis/yap-gophermart/internal/user/handler"
-	userrepository "github.com/msmkdenis/yap-gophermart/internal/user/repository"
-	"github.com/msmkdenis/yap-gophermart/internal/user/service"
+	"github.com/msmkdenis/yap-gophermart/internal/middleware"
+	"github.com/msmkdenis/yap-gophermart/internal/order/orderhandler"
+	"github.com/msmkdenis/yap-gophermart/internal/order/orderrepository"
+	"github.com/msmkdenis/yap-gophermart/internal/order/orderservice"
+	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler"
+	"github.com/msmkdenis/yap-gophermart/internal/user/userrepository"
+	"github.com/msmkdenis/yap-gophermart/internal/user/userservice"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
@@ -30,12 +34,24 @@ func GophermartRun() {
 
 	jwtManager := utils.InitJWTManager(cfg.TokenName, cfg.Secret, logger)
 	postgresPool := initPostgresPool(&cfg, logger)
+
 	userRepository := userrepository.NewPostgresUserRepository(postgresPool, logger)
-	userService := service.NewUserService(userRepository, logger)
+	userService := userservice.NewUserService(userRepository, logger)
+
+	orderRepository := orderrepository.NewPostgresOrderRepository(postgresPool, logger)
+	orderService := orderservice.NewOrderService(orderRepository, logger)
+
+	requestLogger := middleware.InitRequestLogger(logger)
+	jwtAuth := middleware.InitJWTAuth(jwtManager, logger)
 
 	e := echo.New()
 
-	handler.NewUserHandler(e, userService, jwtManager, cfg.Secret, logger)
+	e.Use(requestLogger.RequestLogger())
+	e.Use(middleware.Compress())
+	e.Use(middleware.Decompress())
+
+	userhandler.NewUserHandler(e, userService, jwtManager, cfg.Secret, logger)
+	orderhandler.NewOrderHandler(e, orderService, logger, jwtAuth)
 
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
@@ -68,7 +84,6 @@ func GophermartRun() {
 	}
 
 	<-serverCtx.Done()
-
 }
 
 func initPostgresPool(cfg *config.Config, logger *zap.Logger) *db.PostgresPool {

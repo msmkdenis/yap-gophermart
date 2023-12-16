@@ -1,4 +1,4 @@
-package service
+package userservice
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-	"github.com/msmkdenis/yap-gophermart/internal/user/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/user/model"
+	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
@@ -32,14 +32,13 @@ func NewUserService(repository UserRepository, logger *zap.Logger) *UserUseCase 
 }
 
 func (u *UserUseCase) Register(ctx context.Context, request dto.UserRegisterRequest) error {
-	id := uuid.New().String()
 	passHash, errHash := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if errHash != nil {
 		return apperrors.NewValueError("unable to hash password", utils.Caller(), errHash)
 	}
 
 	userToSave := model.User{
-		ID:       id,
+		ID:       uuid.New().String(),
 		Login:    request.Login,
 		Password: passHash,
 	}

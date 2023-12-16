@@ -1,4 +1,4 @@
-package handler
+package userhandler
 
 import (
 	"context"
@@ -10,22 +10,21 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-	"github.com/msmkdenis/yap-gophermart/internal/middleware"
-	"github.com/msmkdenis/yap-gophermart/internal/user/handler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
+
+// UserService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_user_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/user/userhandler UserService
+type UserService interface {
+	Register(ctx context.Context, request dto.UserRegisterRequest) error
+	Login(ctx context.Context, request dto.UserLoginRequest) error
+}
 
 type UserHandler struct {
 	userService UserService
 	jwtManager  *utils.JWTManager
 	secret      string
 	logger      *zap.Logger
-}
-
-// UserService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_user_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/user/handler UserService
-type UserService interface {
-	Register(ctx context.Context, request dto.UserRegisterRequest) error
-	Login(ctx context.Context, request dto.UserLoginRequest) error
 }
 
 func NewUserHandler(e *echo.Echo, service UserService, jwtManager *utils.JWTManager, secret string, logger *zap.Logger) *UserHandler {
@@ -35,12 +34,6 @@ func NewUserHandler(e *echo.Echo, service UserService, jwtManager *utils.JWTMana
 		secret:      secret,
 		logger:      logger,
 	}
-
-	requestLogger := middleware.InitRequestLogger(logger)
-
-	e.Use(requestLogger.RequestLogger())
-	e.Use(middleware.Compress())
-	e.Use(middleware.Decompress())
 
 	e.POST("/api/user/register", handler.RegisterUser)
 	e.POST("/api/user/login", handler.LoginUser)

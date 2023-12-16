@@ -25,18 +25,18 @@ func InitJWTAuth(jwtManager *utils.JWTManager, logger *zap.Logger) *JWTAuth {
 func (j *JWTAuth) JWTAuth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			cookie, err := c.Request().Cookie(j.jwtManager.TokenName)
+			cookie, err := c.Request().Cookie("token")
 			if err != nil {
 				j.logger.Info("authentification failed", zap.Error(err))
 				return c.NoContent(http.StatusUnauthorized)
 			}
-			userID, err := j.jwtManager.GetUserID(cookie.Value)
+			userLogin, err := j.jwtManager.GetUserLogin(cookie.Value)
 			if err != nil {
 				j.logger.Info("authentification failed", zap.Error(err))
 				return c.NoContent(http.StatusUnauthorized)
 			}
-			c.Set("userID", userID)
-			j.logger.Info("authenticated", zap.String("userID", userID))
+			c.Set("userLogin", userLogin)
+			j.logger.Info("authenticated", zap.String("userLogin", userLogin))
 			return next(c)
 		}
 	}
