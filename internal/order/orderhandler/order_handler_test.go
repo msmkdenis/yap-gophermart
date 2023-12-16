@@ -82,7 +82,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			method: http.MethodPost,
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			body:   validNumber,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), validNumber, login).Times(0)
 			},
@@ -95,7 +95,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			cookie: cookie,
 			body:   validNumber,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), validNumber, login).Return(nil)
 			},
@@ -108,7 +108,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			cookie: cookie,
 			body:   invalidNumber,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), invalidNumber, login).Return(apperrors.ErrBadNumber)
 			},
@@ -121,7 +121,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			cookie: cookie,
 			body:   validNumber,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), validNumber, login).Return(apperrors.ErrOrderUploadedByUser)
 			},
@@ -134,7 +134,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			cookie: cookie,
 			body:   validNumber,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), validNumber, login).Return(apperrors.ErrOrderUploadedByAnotherUser)
 			},
@@ -147,7 +147,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			cookie: cookie,
 			body:   validNumber,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), validNumber, login).Return(errors.New("some error"))
 			},
@@ -160,7 +160,7 @@ func (o *OrderHandlersSuite) TestAddOrder() {
 			header: map[string][]string{"Content-Type": {"plain/text"}},
 			cookie: cookie,
 			body:   "",
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().Upload(gomock.Any(), validNumber, login).Times(0)
 			},
@@ -228,7 +228,7 @@ func (o *OrderHandlersSuite) TestGetOrders() {
 		{
 			name:   "Unauthorized - 401",
 			method: http.MethodGet,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().GetByUser(gomock.Any(), login).Times(0)
 			},
@@ -238,7 +238,7 @@ func (o *OrderHandlersSuite) TestGetOrders() {
 			name:   "Success - 200",
 			method: http.MethodGet,
 			cookie: cookie,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().GetByUser(gomock.Any(), login).Times(1).Return(ordersResponse, nil)
 			},
@@ -249,7 +249,7 @@ func (o *OrderHandlersSuite) TestGetOrders() {
 			name:   "NoContent - 204",
 			method: http.MethodGet,
 			cookie: cookie,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().GetByUser(gomock.Any(), login).Times(1).Return(nil, apperrors.ErrNoOrders)
 			},
@@ -259,7 +259,7 @@ func (o *OrderHandlersSuite) TestGetOrders() {
 			name:   "InternalServerError - 500",
 			method: http.MethodGet,
 			cookie: cookie,
-			path:   "http://localhost:8000/api/orders",
+			path:   "http://localhost:8000/api/user/orders",
 			prepare: func() {
 				o.orderService.EXPECT().GetByUser(gomock.Any(), login).Times(1).Return(nil, errors.New("some error"))
 			},

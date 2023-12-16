@@ -140,11 +140,12 @@ func (s *UserHandlersSuite) TestRegisterUser() {
 			assert.Equal(t, test.expectedCode, w.Code)
 			assert.Equal(t, test.expectedBody, w.Body.String())
 
+			response := w.Result()
+			defer response.Body.Close()
+
 			switch test.expectedCode {
 			case http.StatusOK:
-				cookie := w.Result().Cookies()[0]
-				errClose := w.Result().Body.Close()
-				assert.NoError(t, errClose)
+				cookie := response.Cookies()[0]
 
 				assert.NotEmpty(t, cookie)
 				assert.Equal(t, test.expectedCookieName, cookie.Name)
@@ -153,9 +154,7 @@ func (s *UserHandlersSuite) TestRegisterUser() {
 				assert.NoError(t, errCookieParse)
 				assert.Equal(t, test.expectedLogin, login)
 			default:
-				cookies := w.Result().Cookies()
-				errClose := w.Result().Body.Close()
-				assert.NoError(t, errClose)
+				cookies := response.Cookies()
 
 				assert.Empty(t, cookies)
 			}
@@ -264,11 +263,12 @@ func (s *UserHandlersSuite) TestLoginUser() {
 			assert.Equal(t, test.expectedCode, w.Code)
 			assert.Equal(t, test.expectedBody, w.Body.String())
 
+			response := w.Result()
+			defer response.Body.Close()
+
 			switch test.expectedCode {
 			case http.StatusOK:
-				cookie := w.Result().Cookies()[0]
-				errClose := w.Result().Body.Close()
-				assert.NoError(t, errClose)
+				cookie := response.Cookies()[0]
 
 				assert.NotEmpty(t, cookie)
 				assert.Equal(t, test.expectedCookieName, cookie.Name)
@@ -277,9 +277,7 @@ func (s *UserHandlersSuite) TestLoginUser() {
 				assert.NoError(t, errCookieParse)
 				assert.Equal(t, test.expectedLogin, login)
 			default:
-				cookies := w.Result().Cookies()
-				errClose := w.Result().Body.Close()
-				assert.NoError(t, errClose)
+				cookies := response.Cookies()
 
 				assert.Empty(t, cookies)
 			}

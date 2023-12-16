@@ -34,7 +34,7 @@ func NewOrderHandler(e *echo.Echo, service OrderService, logger *zap.Logger, jwt
 		jwtAuth:      jwtAuth,
 	}
 
-	protectedOrders := e.Group("/api/orders", jwtAuth.JWTAuth())
+	protectedOrders := e.Group("/api/user/orders", jwtAuth.JWTAuth())
 	protectedOrders.POST("", handler.AddOrder)
 	protectedOrders.GET("", handler.GetOrders)
 
