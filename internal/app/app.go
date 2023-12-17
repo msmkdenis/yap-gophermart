@@ -10,6 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/msmkdenis/yap-gophermart/internal/order/accrual"
+	"github.com/shopspring/decimal"
+
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
@@ -32,6 +35,8 @@ func GophermartRun() {
 		log.Fatal("Unable to initialize zap logger", err)
 	}
 
+	decimal.MarshalJSONWithoutQuotes = true
+
 	jwtManager := utils.InitJWTManager(cfg.TokenName, cfg.Secret, logger)
 	postgresPool := initPostgresPool(&cfg, logger)
 
@@ -40,6 +45,9 @@ func GophermartRun() {
 
 	orderRepository := orderrepository.NewPostgresOrderRepository(postgresPool, logger)
 	orderService := orderservice.NewOrderService(orderRepository, logger)
+
+	orderAccrual := accrual.NewOrderAccrual(cfg.AccrualSystemAddress, logger)
+	orderservice.NewOrderAccrualService(orderRepository, orderAccrual, logger).Run()
 
 	requestLogger := middleware.InitRequestLogger(logger)
 	jwtAuth := middleware.InitJWTAuth(jwtManager, logger)

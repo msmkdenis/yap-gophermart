@@ -6,5 +6,6 @@ select
     coalesce(accrual, 0),
     status
 from gophermart."order"
-where user_login = $1
-order by uploaded_at desc;
+where status not in ('INVALID', 'PROCESSED')
+order by uploaded_at desc
+limit 10;

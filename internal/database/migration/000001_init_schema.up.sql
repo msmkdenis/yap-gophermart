@@ -20,6 +20,7 @@ create table if not exists gophermart.order
     user_login              text not null,
     uploaded_at             timestamp default now() not null,
     status                  gophermart.order_status not null,
+    accrual                 numeric(10,2),
     constraint pk_order primary key (id),
     constraint fk_user foreign key (user_login) references gophermart.user (login)
 );

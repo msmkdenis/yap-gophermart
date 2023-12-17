@@ -26,6 +26,12 @@ var selectAllOrders string
 //go:embed queries/is_order_uploaded_by_user.sql
 var isOrderUploadedByUser string
 
+//go:embed queries/update_order_by_order_number.sql
+var updateOrderByNumber string
+
+//go:embed queries/select_ten_orders.sql
+var selectTenOrders string
+
 type PostgresOrderRepository struct {
 	PostgresPool *db.PostgresPool
 	logger       *zap.Logger
@@ -69,6 +75,31 @@ func (r *PostgresOrderRepository) SelectAll(ctx context.Context, userLogin strin
 	orders, err := pgx.CollectRows(queryRows, pgx.RowToStructByPos[model.Order])
 	if err != nil {
 		return nil, apperrors.NewValueError("unable to collect rows", utils.Caller(), err)
+	}
+
+	return orders, nil
+}
+
+func (r *PostgresOrderRepository) UpdateOrder(ctx context.Context, order model.Order) error {
+	_, err := r.PostgresPool.DB.Exec(ctx, updateOrderByNumber, order.Accrual, order.Status, order.Number)
+
+	return err
+}
+
+func (r *PostgresOrderRepository) SelectTenOrders(ctx context.Context) ([]model.Order, error) {
+	queryRows, err := r.PostgresPool.DB.Query(ctx, selectTenOrders)
+	if err != nil {
+		return nil, apperrors.NewValueError("query failed", utils.Caller(), err)
+	}
+	defer queryRows.Close()
+
+	orders, err := pgx.CollectRows(queryRows, pgx.RowToStructByPos[model.Order])
+	if err != nil {
+		return nil, apperrors.NewValueError("unable to collect rows", utils.Caller(), err)
+	}
+
+	if len(orders) == 0 {
+		return nil, apperrors.NewValueError("no orders to process", utils.Caller(), apperrors.ErrNoOrders)
 	}
 
 	return orders, nil

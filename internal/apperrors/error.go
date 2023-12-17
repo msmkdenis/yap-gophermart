@@ -13,8 +13,10 @@ var (
 	ErrEmptyOrderRequest               = errors.New("empty order")
 	ErrOrderUploadedByAnotherUser      = errors.New("order uploaded by another user")
 	ErrOrderUploadedByUser             = errors.New("order uploaded by User")
+	ErrOrderNotFound                   = errors.New("order not found")
 	ErrBadNumber                       = errors.New("bad number")
 	ErrNoOrders                        = errors.New("no orders")
+	ErrRateLimit                       = errors.New("rate limit")
 )
 
 type ValueError struct {

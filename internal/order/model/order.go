@@ -1,11 +1,16 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 type Order struct {
-	ID         string    `db:"id"`
-	Number     string    `db:"number"`
-	UserLogin  string    `db:"user_login"`
-	UploadedAt time.Time `db:"uploaded_at"`
-	Status     string    `db:"status"`
+	ID         string          `db:"id"`
+	Number     string          `db:"number"`
+	UserLogin  string          `db:"user_login"`
+	UploadedAt time.Time       `db:"uploaded_at"`
+	Accrual    decimal.Decimal `db:"accrual"`
+	Status     string          `db:"status"`
 }
