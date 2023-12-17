@@ -32,7 +32,7 @@ func (o *OrderAccrual) QueryUpdateOrder(orderNumber string) (*model.Order, error
 	}
 
 	if r.StatusCode() == http.StatusNoContent {
-		o.logger.Error("error while processing accrual", zap.Error(err))
+		o.logger.Info("error while processing accrual", zap.Error(err))
 		return nil, apperrors.ErrOrderNotFound
 	}
 

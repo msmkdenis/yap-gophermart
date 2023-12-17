@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
 
@@ -18,21 +19,27 @@ type OrderAccrualRepository interface {
 	SelectTenOrders(ctx context.Context) ([]model.Order, error)
 }
 
+type BalanceAccrualRepository interface {
+	UpdateBalance(ctx context.Context, userLogin string, amount decimal.Decimal) error
+}
+
 type OrderQueryAccrual interface {
 	QueryUpdateOrder(orderNumber string) (*model.Order, error)
 }
 
 type OrderAccrualUseCase struct {
-	repository   OrderAccrualRepository
-	queryAccrual OrderQueryAccrual
-	logger       *zap.Logger
+	orderRepository   OrderAccrualRepository
+	balanceRepository BalanceAccrualRepository
+	queryAccrual      OrderQueryAccrual
+	logger            *zap.Logger
 }
 
-func NewOrderAccrualService(repository OrderAccrualRepository, queryAccrual OrderQueryAccrual, logger *zap.Logger) *OrderAccrualUseCase {
+func NewOrderAccrualService(repository OrderAccrualRepository, queryAccrual OrderQueryAccrual, balanceRepository BalanceAccrualRepository, logger *zap.Logger) *OrderAccrualUseCase {
 	return &OrderAccrualUseCase{
-		repository:   repository,
-		queryAccrual: queryAccrual,
-		logger:       logger,
+		orderRepository:   repository,
+		queryAccrual:      queryAccrual,
+		balanceRepository: balanceRepository,
+		logger:            logger,
 	}
 }
 
@@ -40,9 +47,9 @@ func (oc *OrderAccrualUseCase) Run() {
 	go func() {
 		for {
 			time.Sleep(300 * time.Millisecond)
-			tenOrders, err := oc.repository.SelectTenOrders(context.Background())
+			tenOrders, err := oc.orderRepository.SelectTenOrders(context.Background())
 			if err != nil {
-				oc.logger.Error("error while processing accrual", zap.Error(err))
+				// oc.logger.Info("error while processing accrual", zap.Error(err))
 				continue
 			}
 
@@ -67,9 +74,14 @@ func (oc *OrderAccrualUseCase) updateOrder(o *model.Order, rl ratelimit.Limiter,
 	if err == nil {
 		o.Accrual = updatedOrder.Accrual
 		o.Status = updatedOrder.Status
-		errUpdate := oc.repository.UpdateOrder(context.Background(), *o)
-		if errUpdate != nil {
-			oc.logger.Error("error while updating order", zap.Error(errUpdate))
+		errUpdateOrder := oc.orderRepository.UpdateOrder(context.Background(), *o)
+		if errUpdateOrder != nil {
+			oc.logger.Error("error while updating order", zap.Error(errUpdateOrder))
+		}
+
+		errUpdateBalance := oc.balanceRepository.UpdateBalance(context.Background(), o.UserLogin, o.Accrual)
+		if errUpdateBalance != nil {
+			oc.logger.Error("error while updating order", zap.Error(errUpdateOrder))
 		}
 	}
 

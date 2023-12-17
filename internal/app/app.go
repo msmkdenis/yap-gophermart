@@ -10,6 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler"
+	"github.com/msmkdenis/yap-gophermart/internal/balance/balancerepository"
+	"github.com/msmkdenis/yap-gophermart/internal/balance/balanceservice"
+
 	"github.com/msmkdenis/yap-gophermart/internal/order/accrual"
 	"github.com/shopspring/decimal"
 
@@ -46,8 +50,11 @@ func GophermartRun() {
 	orderRepository := orderrepository.NewPostgresOrderRepository(postgresPool, logger)
 	orderService := orderservice.NewOrderService(orderRepository, logger)
 
+	balanceRepository := balancerepository.NewPostgresBalanceRepository(postgresPool, logger)
+	balanceService := balanceservice.NewBalanceService(balanceRepository, logger)
+
 	orderAccrual := accrual.NewOrderAccrual(cfg.AccrualSystemAddress, logger)
-	orderservice.NewOrderAccrualService(orderRepository, orderAccrual, logger).Run()
+	orderservice.NewOrderAccrualService(orderRepository, orderAccrual, balanceRepository, logger).Run()
 
 	requestLogger := middleware.InitRequestLogger(logger)
 	jwtAuth := middleware.InitJWTAuth(jwtManager, logger)
@@ -60,6 +67,7 @@ func GophermartRun() {
 
 	userhandler.NewUserHandler(e, userService, jwtManager, cfg.Secret, logger)
 	orderhandler.NewOrderHandler(e, orderService, logger, jwtAuth)
+	balancehandler.NewBalanceHandler(e, balanceService, logger, jwtAuth)
 
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 

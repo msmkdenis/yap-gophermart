@@ -17,6 +17,9 @@ var (
 	ErrBadNumber                       = errors.New("bad number")
 	ErrNoOrders                        = errors.New("no orders")
 	ErrRateLimit                       = errors.New("rate limit")
+	ErrBalanceNotFound                 = errors.New("balance not found")
+	ErrInsufficientFunds               = errors.New("insufficient funds")
+	ErrNoWithdrawals                   = errors.New("no withdrawals")
 )
 
 type ValueError struct {
