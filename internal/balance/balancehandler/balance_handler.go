@@ -36,7 +36,7 @@ func NewBalanceHandler(e *echo.Echo, service BalanceService, logger *zap.Logger,
 
 	protectedBalance := e.Group("/api/user", jwtAuth.JWTAuth())
 	protectedBalance.GET("/balance", handler.GetBalance)
-	protectedBalance.POST("/withdraw", handler.Withdraw)
+	protectedBalance.POST("/balance/withdraw", handler.Withdraw)
 	protectedBalance.GET("/withdrawals", handler.GetWithdrawals)
 
 	return handler
