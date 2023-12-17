@@ -10,19 +10,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
+
 	"github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler"
 	"github.com/msmkdenis/yap-gophermart/internal/balance/balancerepository"
 	"github.com/msmkdenis/yap-gophermart/internal/balance/balanceservice"
-
-	"github.com/msmkdenis/yap-gophermart/internal/order/accrual"
-	"github.com/shopspring/decimal"
-
-	"github.com/labstack/echo/v4"
-	"go.uber.org/zap"
-
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	db "github.com/msmkdenis/yap-gophermart/internal/database"
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
+	"github.com/msmkdenis/yap-gophermart/internal/order/accrual"
 	"github.com/msmkdenis/yap-gophermart/internal/order/orderhandler"
 	"github.com/msmkdenis/yap-gophermart/internal/order/orderrepository"
 	"github.com/msmkdenis/yap-gophermart/internal/order/orderservice"
@@ -77,7 +75,7 @@ func GophermartRun() {
 		<-quit
 
 		// Shutdown signal with grace period of 30 seconds
-		shutdownCtx, cancel := context.WithTimeout(serverCtx, 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
 		defer cancel()
 
 		go func() {

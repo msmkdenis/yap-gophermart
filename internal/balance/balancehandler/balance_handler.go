@@ -15,6 +15,7 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
 )
 
+// BalanceService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_balance_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler BalanceService
 type BalanceService interface {
 	GetByUser(ctx context.Context, userLogin string) (*dto.BalanceResponse, error)
 	Withdraw(ctx context.Context, orderNumber string, userLogin string, amount decimal.Decimal) error

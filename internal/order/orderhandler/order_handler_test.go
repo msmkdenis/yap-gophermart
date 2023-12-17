@@ -288,7 +288,7 @@ func (o *OrderHandlersSuite) TestGetOrders() {
 				require.NoError(t, jsonErr)
 
 				var expectedBody []dto.OrderResponse
-				jsonErrExp := json.Unmarshal(w.Body.Bytes(), &expectedBody)
+				jsonErrExp := json.Unmarshal(test.expectedBody, &expectedBody)
 				require.NoError(t, jsonErrExp)
 
 				assert.Equal(t, expectedBody, result)
