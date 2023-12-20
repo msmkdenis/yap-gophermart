@@ -1,4 +1,4 @@
-package app
+package gophermart
 
 import (
 	"context"
@@ -30,7 +30,7 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
-func GophermartRun() {
+func Run() {
 	cfg := *config.NewConfig()
 	logger, err := zap.NewProduction()
 	if err != nil {

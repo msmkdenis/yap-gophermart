@@ -11,7 +11,7 @@ create table if not exists gophermart.user
 );
 
 create type gophermart.order_status as enum
-    ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED');
+    ('NEW', 'PROCESSING', 'INVALID', 'PROCESSED', 'REGISTERED');
 
 create table if not exists gophermart.order
 (
