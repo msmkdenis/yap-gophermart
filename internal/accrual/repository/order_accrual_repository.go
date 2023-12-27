@@ -5,7 +5,6 @@ import (
 	_ "embed"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
@@ -38,7 +37,8 @@ func NewOrderAccrualRepository(postgresPool *db.PostgresPool, logger *zap.Logger
 	}
 }
 
-func (r *PostgresOrderAccrualRepository) UpdateOrderBalance(ctx context.Context, order model.Order, userLogin string, amount decimal.Decimal) error {
+func (r *PostgresOrderAccrualRepository) UpdateOrderBalance(ctx context.Context, order model.Order) error {
+	r.logger.Info("updating order", zap.Any("order", order))
 	tx, err := r.postgresPool.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
 	if err != nil {
 		return apperrors.NewValueError("unable to start transaction", utils.Caller(), err)
@@ -66,10 +66,10 @@ func (r *PostgresOrderAccrualRepository) UpdateOrderBalance(ctx context.Context,
 	}
 
 	batch := &pgx.Batch{}
-	batch.Queue(blockOrder.Name, userLogin)
-	batch.Queue(blockBalance.Name, userLogin)
+	batch.Queue(blockOrder.Name, order.UserLogin)
 	batch.Queue(updateOrder.Name, order.Accrual, order.Status, order.Number)
-	batch.Queue(makeAccrual.Name, amount, userLogin)
+	batch.Queue(blockBalance.Name, order.UserLogin)
+	batch.Queue(makeAccrual.Name, order.Accrual, order.UserLogin)
 	result := tx.SendBatch(ctx, batch)
 
 	err = result.Close()

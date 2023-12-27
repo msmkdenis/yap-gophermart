@@ -12,7 +12,7 @@ import (
 type OrderResponse struct {
 	Number     string          `json:"number"`
 	Status     string          `json:"status"`
-	Accrual    decimal.Decimal `json:"http,omitempty"`
+	Accrual    decimal.Decimal `json:"accrual,omitempty"`
 	UploadedAt string          `json:"uploaded_at"`
 }
 
@@ -32,7 +32,7 @@ func (o *OrderResponse) MarshalJSON() ([]byte, error) {
 		jsonResponse, err = json.Marshal(&struct {
 			Number     string          `json:"number"`
 			Status     string          `json:"status"`
-			Accrual    decimal.Decimal `json:"http,omitempty"`
+			Accrual    decimal.Decimal `json:"accrual,omitempty"`
 			UploadedAt string          `json:"uploaded_at"`
 		}{
 			Number:     o.Number,

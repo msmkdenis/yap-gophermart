@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/shopspring/decimal"
 	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
 
@@ -19,7 +18,7 @@ type OrderRepository interface {
 }
 
 type OrderAccrualRepository interface {
-	UpdateOrderBalance(ctx context.Context, order model.Order, userLogin string, amount decimal.Decimal) error
+	UpdateOrderBalance(ctx context.Context, order model.Order) error
 }
 
 type OrderQueryAccrual interface {
@@ -63,11 +62,11 @@ func (oc *OrderAccrualUseCase) Run() {
 	}()
 }
 
-func (oc *OrderAccrualUseCase) updateOrderBalance(o *model.Order, rl ratelimit.Limiter, wg *sync.WaitGroup) {
+func (oc *OrderAccrualUseCase) updateOrderBalance(order *model.Order, rl ratelimit.Limiter, wg *sync.WaitGroup) {
 	defer func() { wg.Done() }()
 
 	rl.Take()
-	updatedOrder, err := oc.queryAccrual.QueryUpdateOrder(o.Number)
+	updatedOrder, err := oc.queryAccrual.QueryUpdateOrder(order.Number)
 
 	if errors.Is(err, apperrors.ErrRateLimit) {
 		for i := 0; i < 6000; i++ {
@@ -76,10 +75,10 @@ func (oc *OrderAccrualUseCase) updateOrderBalance(o *model.Order, rl ratelimit.L
 	}
 
 	if err == nil {
-		o.Accrual = updatedOrder.Accrual
-		o.Status = updatedOrder.Status
+		order.Accrual = updatedOrder.Accrual
+		order.Status = updatedOrder.Status
 
-		errUpdateOrderBalance := oc.orderAccrualRepository.UpdateOrderBalance(context.Background(), *o, o.UserLogin, o.Accrual)
+		errUpdateOrderBalance := oc.orderAccrualRepository.UpdateOrderBalance(context.Background(), *order)
 		if errUpdateOrderBalance != nil {
 			oc.logger.Error("error while updating order balance", zap.Error(errUpdateOrderBalance))
 		}
