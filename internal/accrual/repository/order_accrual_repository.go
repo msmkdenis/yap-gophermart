@@ -39,8 +39,6 @@ func NewOrderAccrualRepository(postgresPool *db.PostgresPool, logger *zap.Logger
 }
 
 func (r *PostgresOrderAccrualRepository) UpdateOrderBalance(ctx context.Context, order model.Order, userLogin string, amount decimal.Decimal) error {
-	_, err := r.postgresPool.DB.Exec(ctx, updateOrderByNumber, order.Accrual, order.Status, order.Number)
-
 	tx, err := r.postgresPool.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
 	if err != nil {
 		return apperrors.NewValueError("unable to start transaction", utils.Caller(), err)
