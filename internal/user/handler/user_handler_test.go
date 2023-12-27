@@ -1,4 +1,4 @@
-package userhandler
+package handler
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	mock "github.com/msmkdenis/yap-gophermart/internal/mocks"
-	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/user/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 

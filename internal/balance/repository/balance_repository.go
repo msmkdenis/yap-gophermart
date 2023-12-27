@@ -1,4 +1,4 @@
-package balancerepository
+package repository
 
 import (
 	"context"
@@ -21,36 +21,33 @@ import (
 //go:embed queries/select_balance_by_user.sql
 var selectBalanceByUser string
 
-//go:embed queries/block_balance_by_user.sql
-var blockBalanceByUser string
-
 //go:embed queries/withdraw_from_balance_by_user.sql
 var withdrawFromBalanceByUser string
 
 //go:embed queries/insert_withdrawal.sql
 var insertWithdrawal string
 
-//go:embed queries/bonus_accrual.sql
-var bonusAccrual string
-
 //go:embed queries/select_withdrawals_by_user.sql
 var selectWithdrawalsByUser string
 
+//go:embed queries/block_balance_by_user.sql
+var blockBalanceByUser string
+
 type PostgresBalanceRepository struct {
-	PostgresPool *db.PostgresPool
+	postgresPool *db.PostgresPool
 	logger       *zap.Logger
 }
 
 func NewPostgresBalanceRepository(postgresPool *db.PostgresPool, logger *zap.Logger) *PostgresBalanceRepository {
 	return &PostgresBalanceRepository{
-		PostgresPool: postgresPool,
+		postgresPool: postgresPool,
 		logger:       logger,
 	}
 }
 
 func (r *PostgresBalanceRepository) SelectByUserLogin(ctx context.Context, userLogin string) (*model.Balance, error) {
 	var balance model.Balance
-	err := r.PostgresPool.DB.QueryRow(ctx, selectBalanceByUser, userLogin).
+	err := r.postgresPool.DB.QueryRow(ctx, selectBalanceByUser, userLogin).
 		Scan(&balance.ID, &balance.UserLogin, &balance.Current, &balance.Withdrawn)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -65,7 +62,7 @@ func (r *PostgresBalanceRepository) SelectByUserLogin(ctx context.Context, userL
 }
 
 func (r *PostgresBalanceRepository) SelectWithdrawalsByUserLogin(ctx context.Context, userLogin string) ([]model.Withdrawal, error) {
-	queryRows, err := r.PostgresPool.DB.Query(ctx, selectWithdrawalsByUser, userLogin)
+	queryRows, err := r.postgresPool.DB.Query(ctx, selectWithdrawalsByUser, userLogin)
 	if err != nil {
 		return nil, apperrors.NewValueError("query failed", utils.Caller(), err)
 	}
@@ -83,43 +80,8 @@ func (r *PostgresBalanceRepository) SelectWithdrawalsByUserLogin(ctx context.Con
 	return withdrawals, nil
 }
 
-func (r *PostgresBalanceRepository) UpdateBalance(ctx context.Context, userLogin string, amount decimal.Decimal) error {
-	tx, err := r.PostgresPool.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
-	if err != nil {
-		return apperrors.NewValueError("unable to start transaction", utils.Caller(), err)
-	}
-	defer tx.Rollback(ctx)
-
-	block, err := tx.Prepare(ctx, "block", blockBalanceByUser)
-	if err != nil {
-		return apperrors.NewValueError("unable to prepare query", utils.Caller(), err)
-	}
-
-	accrual, err := tx.Prepare(ctx, "accrual", bonusAccrual)
-	if err != nil {
-		return apperrors.NewValueError("unable to prepare query", utils.Caller(), err)
-	}
-
-	batch := &pgx.Batch{}
-	batch.Queue(block.Name, userLogin)
-	batch.Queue(accrual.Name, amount, userLogin)
-	result := tx.SendBatch(ctx, batch)
-
-	err = result.Close()
-	if err != nil {
-		return apperrors.NewValueError("close failed", utils.Caller(), err)
-	}
-
-	err = tx.Commit(ctx)
-	if err != nil {
-		return apperrors.NewValueError("commit failed", utils.Caller(), err)
-	}
-
-	return nil
-}
-
 func (r *PostgresBalanceRepository) Withdraw(ctx context.Context, orderNumber string, userLogin string, amount decimal.Decimal) error {
-	tx, err := r.PostgresPool.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
+	tx, err := r.postgresPool.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.RepeatableRead})
 	if err != nil {
 		return apperrors.NewValueError("unable to start transaction", utils.Caller(), err)
 	}

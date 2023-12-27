@@ -59,5 +59,5 @@ func Run() {
 type ProcessedOrder struct {
 	OrderNumber string          `json:"order"`
 	OrderStatus string          `json:"status"`
-	Accrual     decimal.Decimal `json:"accrual"`
+	Accrual     decimal.Decimal `json:"http"`
 }

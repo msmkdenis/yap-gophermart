@@ -1,4 +1,4 @@
-package balancehandler
+package handler
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-	"github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/balance/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
 	mock "github.com/msmkdenis/yap-gophermart/internal/mocks"

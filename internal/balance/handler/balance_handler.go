@@ -1,4 +1,4 @@
-package balancehandler
+package handler
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-	"github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/balance/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
 )
 
-// BalanceService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_balance_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler BalanceService
+// BalanceService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_balance_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/balance/handler BalanceService
 type BalanceService interface {
 	GetByUser(ctx context.Context, userLogin string) (*dto.BalanceResponse, error)
 	Withdraw(ctx context.Context, orderNumber string, userLogin string, amount decimal.Decimal) error

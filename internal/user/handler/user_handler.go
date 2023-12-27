@@ -1,4 +1,4 @@
-package userhandler
+package handler
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/user/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
-// UserService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_user_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/user/userhandler UserService
+// UserService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_user_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/user/handler UserService
 type UserService interface {
 	Register(ctx context.Context, request dto.UserRegisterRequest) error
 	Login(ctx context.Context, request dto.UserLoginRequest) error

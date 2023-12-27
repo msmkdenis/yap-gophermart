@@ -1,4 +1,4 @@
-package userservice
+package service
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
+	"github.com/msmkdenis/yap-gophermart/internal/user/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/user/model"
-	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 

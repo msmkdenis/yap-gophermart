@@ -3,6 +3,8 @@ package gophermart
 import (
 	"context"
 	"errors"
+
+	"github.com/msmkdenis/yap-gophermart/internal/accrual/service"
 	"log"
 	"net/http"
 	"os"
@@ -14,19 +16,20 @@ import (
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 
-	"github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler"
-	"github.com/msmkdenis/yap-gophermart/internal/balance/balancerepository"
-	"github.com/msmkdenis/yap-gophermart/internal/balance/balanceservice"
+	accrualHttp "github.com/msmkdenis/yap-gophermart/internal/accrual/http"
+	accrualOrderRepository "github.com/msmkdenis/yap-gophermart/internal/accrual/repository"
+	balanceHandler "github.com/msmkdenis/yap-gophermart/internal/balance/handler"
+	balanceRepository "github.com/msmkdenis/yap-gophermart/internal/balance/repository"
+	balanceService "github.com/msmkdenis/yap-gophermart/internal/balance/service"
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	db "github.com/msmkdenis/yap-gophermart/internal/database"
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
-	"github.com/msmkdenis/yap-gophermart/internal/order/accrual"
-	"github.com/msmkdenis/yap-gophermart/internal/order/orderhandler"
-	"github.com/msmkdenis/yap-gophermart/internal/order/orderrepository"
-	"github.com/msmkdenis/yap-gophermart/internal/order/orderservice"
-	"github.com/msmkdenis/yap-gophermart/internal/user/userhandler"
-	"github.com/msmkdenis/yap-gophermart/internal/user/userrepository"
-	"github.com/msmkdenis/yap-gophermart/internal/user/userservice"
+	orderHandler "github.com/msmkdenis/yap-gophermart/internal/order/handler"
+	orderRepository "github.com/msmkdenis/yap-gophermart/internal/order/repository"
+	orderService "github.com/msmkdenis/yap-gophermart/internal/order/service"
+	userHandler "github.com/msmkdenis/yap-gophermart/internal/user/handler"
+	userRepository "github.com/msmkdenis/yap-gophermart/internal/user/repository"
+	userService "github.com/msmkdenis/yap-gophermart/internal/user/service"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
@@ -42,17 +45,18 @@ func Run() {
 	jwtManager := utils.InitJWTManager(cfg.TokenName, cfg.Secret, logger)
 	postgresPool := initPostgresPool(&cfg, logger)
 
-	userRepository := userrepository.NewPostgresUserRepository(postgresPool, logger)
-	userService := userservice.NewUserService(userRepository, logger)
+	userRepo := userRepository.NewPostgresUserRepository(postgresPool, logger)
+	userServ := userService.NewUserService(userRepo, logger)
 
-	orderRepository := orderrepository.NewPostgresOrderRepository(postgresPool, logger)
-	orderService := orderservice.NewOrderService(orderRepository, logger)
+	orderRepo := orderRepository.NewPostgresOrderRepository(postgresPool, logger)
+	orderServ := orderService.NewOrderService(orderRepo, logger)
 
-	balanceRepository := balancerepository.NewPostgresBalanceRepository(postgresPool, logger)
-	balanceService := balanceservice.NewBalanceService(balanceRepository, logger)
+	balanceRepo := balanceRepository.NewPostgresBalanceRepository(postgresPool, logger)
+	balanceServ := balanceService.NewBalanceService(balanceRepo, logger)
 
-	orderAccrual := accrual.NewOrderAccrual(cfg.AccrualSystemAddress, logger)
-	orderservice.NewOrderAccrualService(orderRepository, orderAccrual, balanceRepository, logger).Run()
+	orderAccrual := accrualHttp.NewOrderAccrual(cfg.AccrualSystemAddress, logger)
+	orderAccrualRepo := accrualOrderRepository.NewOrderAccrualRepository(postgresPool, logger)
+	service.NewOrderAccrualService(orderRepo, orderAccrual, orderAccrualRepo, logger).Run()
 
 	requestLogger := middleware.InitRequestLogger(logger)
 	jwtAuth := middleware.InitJWTAuth(jwtManager, logger)
@@ -63,9 +67,9 @@ func Run() {
 	e.Use(middleware.Compress())
 	e.Use(middleware.Decompress())
 
-	userhandler.NewUserHandler(e, userService, jwtManager, cfg.Secret, logger)
-	orderhandler.NewOrderHandler(e, orderService, logger, jwtAuth)
-	balancehandler.NewBalanceHandler(e, balanceService, logger, jwtAuth)
+	userHandler.NewUserHandler(e, userServ, jwtManager, cfg.Secret, logger)
+	orderHandler.NewOrderHandler(e, orderServ, logger, jwtAuth)
+	balanceHandler.NewBalanceHandler(e, balanceServ, logger, jwtAuth)
 
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
@@ -74,7 +78,6 @@ func Run() {
 	go func() {
 		<-quit
 
-		// Shutdown signal with grace period of 30 seconds
 		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
 		defer cancel()
 

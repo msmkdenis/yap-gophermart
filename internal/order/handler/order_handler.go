@@ -1,4 +1,4 @@
-package orderhandler
+package handler
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 
 	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
-	"github.com/msmkdenis/yap-gophermart/internal/order/orderhandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/order/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
-// OrderService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_order_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/order/orderhandler OrderService
+// OrderService mockgen --build_flags=--mod=mod -destination=internal/mocks/mock_order_service.go -package=mock github.com/msmkdenis/yap-gophermart/internal/order/handler OrderService
 type OrderService interface {
 	Upload(ctx context.Context, orderNumber string, userLogin string) error
 	GetByUser(ctx context.Context, userLogin string) ([]dto.OrderResponse, error)

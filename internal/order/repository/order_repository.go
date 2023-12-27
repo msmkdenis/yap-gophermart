@@ -1,4 +1,4 @@
-package orderrepository
+package repository
 
 import (
 	"context"
@@ -26,27 +26,24 @@ var selectAllOrders string
 //go:embed queries/is_order_uploaded_by_user.sql
 var isOrderUploadedByUser string
 
-//go:embed queries/update_order_by_order_number.sql
-var updateOrderByNumber string
-
 //go:embed queries/select_ten_orders.sql
 var selectTenOrders string
 
 type PostgresOrderRepository struct {
-	PostgresPool *db.PostgresPool
+	postgresPool *db.PostgresPool
 	logger       *zap.Logger
 }
 
 func NewPostgresOrderRepository(postgresPool *db.PostgresPool, logger *zap.Logger) *PostgresOrderRepository {
 	return &PostgresOrderRepository{
-		PostgresPool: postgresPool,
+		postgresPool: postgresPool,
 		logger:       logger,
 	}
 }
 
 func (r *PostgresOrderRepository) Insert(ctx context.Context, order model.Order) error {
 	var isExists bool
-	errExists := r.PostgresPool.DB.QueryRow(ctx, isOrderUploadedByUser, order.Number, order.UserLogin).Scan(&isExists)
+	errExists := r.postgresPool.DB.QueryRow(ctx, isOrderUploadedByUser, order.Number, order.UserLogin).Scan(&isExists)
 	if errExists != nil {
 		return apperrors.NewValueError("query failed", utils.Caller(), errExists)
 	}
@@ -55,7 +52,7 @@ func (r *PostgresOrderRepository) Insert(ctx context.Context, order model.Order)
 		return apperrors.ErrOrderUploadedByUser
 	}
 
-	_, err := r.PostgresPool.DB.Exec(ctx, insertOrder, order.ID, order.Number, order.UserLogin, order.Status)
+	_, err := r.postgresPool.DB.Exec(ctx, insertOrder, order.ID, order.Number, order.UserLogin, order.Status)
 
 	var e *pgconn.PgError
 	if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
@@ -66,7 +63,7 @@ func (r *PostgresOrderRepository) Insert(ctx context.Context, order model.Order)
 }
 
 func (r *PostgresOrderRepository) SelectAll(ctx context.Context, userLogin string) ([]model.Order, error) {
-	queryRows, err := r.PostgresPool.DB.Query(ctx, selectAllOrders, userLogin)
+	queryRows, err := r.postgresPool.DB.Query(ctx, selectAllOrders, userLogin)
 	if err != nil {
 		return nil, apperrors.NewValueError("query failed", utils.Caller(), err)
 	}
@@ -80,14 +77,8 @@ func (r *PostgresOrderRepository) SelectAll(ctx context.Context, userLogin strin
 	return orders, nil
 }
 
-func (r *PostgresOrderRepository) UpdateOrder(ctx context.Context, order model.Order) error {
-	_, err := r.PostgresPool.DB.Exec(ctx, updateOrderByNumber, order.Accrual, order.Status, order.Number)
-
-	return err
-}
-
 func (r *PostgresOrderRepository) SelectTenOrders(ctx context.Context) ([]model.Order, error) {
-	queryRows, err := r.PostgresPool.DB.Query(ctx, selectTenOrders)
+	queryRows, err := r.postgresPool.DB.Query(ctx, selectTenOrders)
 	if err != nil {
 		return nil, apperrors.NewValueError("query failed", utils.Caller(), err)
 	}

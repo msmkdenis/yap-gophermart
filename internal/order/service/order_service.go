@@ -1,17 +1,16 @@
-package orderservice
+package service
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
+	"github.com/msmkdenis/yap-gophermart/internal/order/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/order/model"
-	"github.com/msmkdenis/yap-gophermart/internal/order/orderhandler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 

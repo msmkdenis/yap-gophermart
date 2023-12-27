@@ -1,4 +1,4 @@
-package orderhandler
+package handler
 
 import (
 	"encoding/json"
@@ -19,7 +19,7 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/config"
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
 	mock "github.com/msmkdenis/yap-gophermart/internal/mocks"
-	"github.com/msmkdenis/yap-gophermart/internal/order/orderhandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/order/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 

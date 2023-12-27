@@ -1,4 +1,4 @@
-package balanceservice
+package service
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 
-	"github.com/msmkdenis/yap-gophermart/internal/balance/balancehandler/dto"
+	"github.com/msmkdenis/yap-gophermart/internal/balance/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/balance/model"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )

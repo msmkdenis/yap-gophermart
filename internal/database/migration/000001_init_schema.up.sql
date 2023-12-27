@@ -22,7 +22,7 @@ create table if not exists gophermart.order
     status                  gophermart.order_status not null,
     accrual                 numeric(10,2),
     constraint pk_order primary key (id),
-    constraint fk_user foreign key (user_login) references gophermart.user (login)
+    constraint fk_user foreign key (user_login) references gophermart.user (login)  on update cascade
 );
 
 create table if not exists gophermart.balance
@@ -32,7 +32,7 @@ create table if not exists gophermart.balance
     current                 numeric(10,2) default 0 check ( current >= 0),
     withdrawn               numeric(10,2) default 0 check ( withdrawn >= 0),
     constraint pk_balance primary key (id),
-    constraint fk_user foreign key (user_login) references gophermart.user (login)
+    constraint fk_user foreign key (user_login) references gophermart.user (login)  on update cascade
 );
 
 create or replace function gophermart.register_create_balance()
@@ -59,7 +59,7 @@ create table if not exists gophermart.withdrawals
     sum                     numeric(10,2) not null check ( sum >= 0),
     processed_at            timestamp default now(),
     constraint pk_withdrawals primary key (id),
-    constraint fk_user foreign key (user_login) references gophermart.user (login)
+    constraint fk_user foreign key (user_login) references gophermart.user (login) on update cascade
 );
 
 commit transaction;

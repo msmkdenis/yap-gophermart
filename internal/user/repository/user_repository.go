@@ -1,4 +1,4 @@
-package userrepository
+package repository
 
 import (
 	"context"
@@ -24,19 +24,19 @@ var insertUser string
 var selectUserByLogin string
 
 type PostgresUserRepository struct {
-	PostgresPool *db.PostgresPool
+	postgresPool *db.PostgresPool
 	logger       *zap.Logger
 }
 
 func NewPostgresUserRepository(postgresPool *db.PostgresPool, logger *zap.Logger) *PostgresUserRepository {
 	return &PostgresUserRepository{
-		PostgresPool: postgresPool,
+		postgresPool: postgresPool,
 		logger:       logger,
 	}
 }
 
 func (r *PostgresUserRepository) Insert(ctx context.Context, user model.User) error {
-	_, err := r.PostgresPool.DB.Exec(ctx, insertUser, user.ID, user.Login, user.Password)
+	_, err := r.postgresPool.DB.Exec(ctx, insertUser, user.ID, user.Login, user.Password)
 
 	var e *pgconn.PgError
 	if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
@@ -48,7 +48,7 @@ func (r *PostgresUserRepository) Insert(ctx context.Context, user model.User) er
 
 func (r *PostgresUserRepository) SelectByLogin(ctx context.Context, login string) (*model.User, error) {
 	var user model.User
-	err := r.PostgresPool.DB.QueryRow(ctx, selectUserByLogin, login).Scan(&user.ID, &user.Login, &user.Password)
+	err := r.postgresPool.DB.QueryRow(ctx, selectUserByLogin, login).Scan(&user.ID, &user.Login, &user.Password)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			err = apperrors.NewValueError("user not found", utils.Caller(), apperrors.ErrUserNotFound)
