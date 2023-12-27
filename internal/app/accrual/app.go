@@ -53,7 +53,6 @@ func Run() {
 	if errStart != nil && !errors.Is(errStart, http.ErrServerClosed) {
 		log.Fatal(err)
 	}
-
 }
 
 type ProcessedOrder struct {

@@ -3,8 +3,6 @@ package gophermart
 import (
 	"context"
 	"errors"
-
-	"github.com/msmkdenis/yap-gophermart/internal/accrual/service"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +16,7 @@ import (
 
 	accrualHttp "github.com/msmkdenis/yap-gophermart/internal/accrual/http"
 	accrualOrderRepository "github.com/msmkdenis/yap-gophermart/internal/accrual/repository"
+	accrualService "github.com/msmkdenis/yap-gophermart/internal/accrual/service"
 	balanceHandler "github.com/msmkdenis/yap-gophermart/internal/balance/handler"
 	balanceRepository "github.com/msmkdenis/yap-gophermart/internal/balance/repository"
 	balanceService "github.com/msmkdenis/yap-gophermart/internal/balance/service"
@@ -56,7 +55,7 @@ func Run() {
 
 	orderAccrual := accrualHttp.NewOrderAccrual(cfg.AccrualSystemAddress, logger)
 	orderAccrualRepo := accrualOrderRepository.NewOrderAccrualRepository(postgresPool, logger)
-	service.NewOrderAccrualService(orderRepo, orderAccrual, orderAccrualRepo, logger).Run()
+	accrualService.NewOrderAccrualService(orderRepo, orderAccrual, orderAccrualRepo, logger).Run()
 
 	requestLogger := middleware.InitRequestLogger(logger)
 	jwtAuth := middleware.InitJWTAuth(jwtManager, logger)
