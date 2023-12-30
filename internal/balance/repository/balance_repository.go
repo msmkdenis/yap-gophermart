@@ -5,10 +5,10 @@ import (
 	_ "embed"
 	"errors"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/pgxv5"
 	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
-
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 
@@ -33,16 +33,37 @@ var selectWithdrawalsByUser string
 //go:embed queries/block_balance_by_user.sql
 var blockBalanceByUser string
 
+//go:embed queries/bonus_accrual.sql
+var bonusAccrual string
+
 type PostgresBalanceRepository struct {
 	postgresPool *db.PostgresPool
 	logger       *zap.Logger
+	getter       *trmpgx.CtxGetter
 }
 
 func NewPostgresBalanceRepository(postgresPool *db.PostgresPool, logger *zap.Logger) *PostgresBalanceRepository {
 	return &PostgresBalanceRepository{
 		postgresPool: postgresPool,
 		logger:       logger,
+		getter:       trmpgx.DefaultCtxGetter,
 	}
+}
+
+func (r *PostgresBalanceRepository) UpdateBalance(ctx context.Context, userLogin string, amount decimal.Decimal) error {
+	conn := r.getter.DefaultTrOrDB(ctx, r.postgresPool.DB)
+
+	batch := &pgx.Batch{}
+	batch.Queue(blockBalanceByUser, userLogin)
+	batch.Queue(bonusAccrual, amount, userLogin)
+	result := conn.SendBatch(ctx, batch)
+
+	err := result.Close()
+	if err != nil {
+		return apperrors.NewValueError("close failed", utils.Caller(), err)
+	}
+
+	return nil
 }
 
 func (r *PostgresBalanceRepository) SelectByUserLogin(ctx context.Context, userLogin string) (*model.Balance, error) {

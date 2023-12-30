@@ -10,12 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/pgxv5"
+	"github.com/avito-tech/go-transaction-manager/trm/manager"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 
 	accrualHttp "github.com/msmkdenis/yap-gophermart/internal/accrual/http"
-	accrualOrderRepository "github.com/msmkdenis/yap-gophermart/internal/accrual/repository"
 	accrualService "github.com/msmkdenis/yap-gophermart/internal/accrual/service"
 	balanceHandler "github.com/msmkdenis/yap-gophermart/internal/balance/handler"
 	balanceRepository "github.com/msmkdenis/yap-gophermart/internal/balance/repository"
@@ -54,8 +55,8 @@ func Run() {
 	balanceServ := balanceService.NewBalanceService(balanceRepo, logger)
 
 	orderAccrual := accrualHttp.NewOrderAccrual(cfg.AccrualSystemAddress, logger)
-	orderAccrualRepo := accrualOrderRepository.NewOrderAccrualRepository(postgresPool, logger)
-	accrualService.NewOrderAccrualService(orderRepo, orderAccrual, orderAccrualRepo, logger).Run()
+	accrualTrManager := manager.Must(trmpgx.NewDefaultFactory(postgresPool.DB))
+	accrualService.NewOrderAccrualService(orderRepo, balanceRepo, orderAccrual, logger, accrualTrManager).Run()
 
 	requestLogger := middleware.InitRequestLogger(logger)
 	jwtAuth := middleware.InitJWTAuth(jwtManager, logger)
@@ -87,7 +88,6 @@ func Run() {
 			}
 		}()
 
-		// Trigger graceful shutdown
 		if errShutdown := e.Shutdown(shutdownCtx); errShutdown != nil {
 			e.Logger.Fatal(errShutdown)
 		}

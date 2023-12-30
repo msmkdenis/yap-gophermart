@@ -22,6 +22,7 @@ require (
 )
 
 require (
+	github.com/avito-tech/go-transaction-manager v1.4.1 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect

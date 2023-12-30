@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 
+	trmpgx "github.com/avito-tech/go-transaction-manager/pgxv5"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -29,16 +30,40 @@ var isOrderUploadedByUser string
 //go:embed queries/select_ten_orders.sql
 var selectTenOrders string
 
+//go:embed queries/update_order_by_order_number.sql
+var updateOrderByNumber string
+
+//go:embed queries/block_order_by_user.sql
+var blockOrderByUser string
+
 type PostgresOrderRepository struct {
 	postgresPool *db.PostgresPool
 	logger       *zap.Logger
+	getter       *trmpgx.CtxGetter
 }
 
 func NewPostgresOrderRepository(postgresPool *db.PostgresPool, logger *zap.Logger) *PostgresOrderRepository {
 	return &PostgresOrderRepository{
 		postgresPool: postgresPool,
 		logger:       logger,
+		getter:       trmpgx.DefaultCtxGetter,
 	}
+}
+
+func (r *PostgresOrderRepository) UpdateOrder(ctx context.Context, order model.Order) error {
+	conn := r.getter.DefaultTrOrDB(ctx, r.postgresPool.DB)
+
+	batch := &pgx.Batch{}
+	batch.Queue(blockOrderByUser, order.UserLogin)
+	batch.Queue(updateOrderByNumber, order.Accrual, order.Status, order.Number)
+	result := conn.SendBatch(ctx, batch)
+
+	err := result.Close()
+	if err != nil {
+		return apperrors.NewValueError("close failed", utils.Caller(), err)
+	}
+
+	return err
 }
 
 func (r *PostgresOrderRepository) Insert(ctx context.Context, order model.Order) error {
