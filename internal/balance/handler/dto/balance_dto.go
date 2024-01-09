@@ -3,6 +3,7 @@ package dto
 import (
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/shopspring/decimal"
 
 	"github.com/msmkdenis/yap-gophermart/internal/balance/model"
@@ -22,7 +23,7 @@ func MapToBalanceResponse(balance model.Balance) BalanceResponse {
 
 type BalanceWithdrawRequest struct {
 	OrderNumber string          `json:"order" validate:"required"`
-	Amount      decimal.Decimal `json:"sum" validate:"required"`
+	Amount      decimal.Decimal `json:"sum" validate:"required,positive_withdraw"`
 }
 
 type WithdrawalResponse struct {
@@ -37,4 +38,13 @@ func MapToWithdrawalResponse(withdrawal model.Withdrawal) WithdrawalResponse {
 		Amount:      withdrawal.Amount,
 		ProcessedAt: withdrawal.ProcessedAt.Format(time.RFC3339),
 	}
+}
+
+func PositiveWithdraw(fl validator.FieldLevel) bool {
+	data, ok := fl.Field().Interface().(decimal.Decimal)
+	if !ok {
+		return false
+	}
+
+	return data.GreaterThan(decimal.Zero)
 }

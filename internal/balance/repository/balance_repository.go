@@ -132,7 +132,9 @@ func (r *PostgresBalanceRepository) Withdraw(ctx context.Context, orderNumber st
 	err = result.Close()
 	var e *pgconn.PgError
 	if errors.As(err, &e) && e.Code == pgerrcode.CheckViolation {
-		return apperrors.ErrInsufficientFunds
+		if e.ConstraintName == "not_negative_balance" {
+			return apperrors.ErrInsufficientFunds
+		}
 	}
 
 	if err != nil {

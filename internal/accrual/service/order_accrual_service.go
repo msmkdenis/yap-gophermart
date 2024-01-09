@@ -113,7 +113,7 @@ func (oc *OrderAccrualUseCase) updateOrderBalance(order *model.Order, rl ratelim
 		})
 
 		if errTransaction != nil {
-			oc.logger.Error("error while updating order balance", zap.Error(err))
+			oc.logger.Error("error while updating order balance in transaction", zap.Error(err))
 		}
 	}
 }

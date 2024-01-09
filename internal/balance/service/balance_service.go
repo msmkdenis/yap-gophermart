@@ -5,11 +5,10 @@ import (
 	"fmt"
 
 	"github.com/ShiraazMoollatjie/goluhn"
-	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
-
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 
+	"github.com/msmkdenis/yap-gophermart/internal/apperrors"
 	"github.com/msmkdenis/yap-gophermart/internal/balance/handler/dto"
 	"github.com/msmkdenis/yap-gophermart/internal/balance/model"
 	"github.com/msmkdenis/yap-gophermart/internal/utils"

@@ -101,6 +101,11 @@ func (h *BalanceHandler) Withdraw(c echo.Context) error {
 	}
 
 	requestValidator := validator.New()
+	errRegisterValidator := requestValidator.RegisterValidation("positive_withdraw", dto.PositiveWithdraw)
+	if errRegisterValidator != nil {
+		h.logger.Warn("Unable to register validator", zap.Error(errRegisterValidator))
+	}
+
 	if validateErr := requestValidator.Struct(request); validateErr != nil {
 		h.logger.Warn("Bad Request: invalid request", zap.Error(validateErr))
 		return c.String(http.StatusBadRequest, "Invalid request data")
