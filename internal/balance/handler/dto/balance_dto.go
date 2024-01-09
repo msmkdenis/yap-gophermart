@@ -45,6 +45,5 @@ func PositiveWithdraw(fl validator.FieldLevel) bool {
 	if !ok {
 		return false
 	}
-
 	return data.GreaterThan(decimal.Zero)
 }
