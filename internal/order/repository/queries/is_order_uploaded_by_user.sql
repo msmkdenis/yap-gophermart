@@ -1,0 +1,1 @@
+select exists(select 1 from gophermart.order where number = $1 and user_login = $2);
