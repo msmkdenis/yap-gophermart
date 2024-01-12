@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	trmpgx "github.com/avito-tech/go-transaction-manager/pgxv5"
@@ -33,7 +31,7 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/utils"
 )
 
-func Run() {
+func Run(quitSignal chan os.Signal) {
 	cfg := *config.NewConfig()
 	logger, err := zap.NewProduction()
 	if err != nil {
@@ -73,10 +71,8 @@ func Run() {
 
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	go func() {
-		<-quit
+		<-quitSignal
 
 		shutdownCtx, cancel := context.WithTimeout(serverCtx, 30*time.Second)
 		defer cancel()
