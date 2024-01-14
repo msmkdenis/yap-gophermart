@@ -20,7 +20,7 @@ func NewConfig() *Config {
 
 	flag.StringVar(&config.Address, "a", "localhost:7000", "Адрес и порт запуска сервиса")
 	flag.StringVar(&config.DatabaseURI, "d", "user=postgres password=postgres host=localhost database=yap-gophermart sslmode=disable", "Адрес подключения к базе данных")
-	flag.StringVar(&config.AccrualSystemAddress, "r", "http://accrual:8080", "Адрес подключения к базе данных")
+	flag.StringVar(&config.AccrualSystemAddress, "r", "http://localhost:8080", "Адрес подключения к базе данных")
 	flag.StringVar(&config.Secret, "s", "supersecretkey", "Секрет для JWT")
 	flag.StringVar(&config.TokenName, "t", "token", "Enter token name Or use TOKEN_NAME env")
 
