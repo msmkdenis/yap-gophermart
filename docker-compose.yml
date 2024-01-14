@@ -1,0 +1,64 @@
+version: '3.7'
+
+services:
+  accrual:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/accrual/Dockerfile
+    image: accrual
+    container_name: http
+    restart: always
+    ports:
+      - 7070:8000
+    depends_on:
+      - postgres_db
+
+  server:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/gophermart/Dockerfile
+    image: yap-gophermart
+    container_name: yap_gophermart_server
+    restart: always
+    environment:
+      - RUN_ADDRESS=server:8000
+      - DATABASE_URI=postgres://postgres:postgres@postgres_db:5432/gophermart?sslmode=disable
+      - SECRET=supersecret
+      - TOKEN_NAME=token
+      - ACCRUAL_SYSTEM_ADDRESS=http://http:8000
+    ports:
+      - 8080:8000
+    depends_on:
+      - postgres_db
+
+
+  postgres_db:
+    image: postgres:15.3
+    container_name: gophermart_postgres_db
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=gophermart
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - 5436:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:7.5
+    container_name: gophermart_pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: postgres@mail.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    volumes:
+      - ./pgadmindata/servers.json:/pgadmin4/servers.json
+    depends_on:
+      - postgres_db
+
+volumes:
+  pg_data: {}
