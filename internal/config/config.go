@@ -18,7 +18,7 @@ type Config struct {
 func NewConfig() *Config {
 	config := &Config{}
 
-	flag.StringVar(&config.Address, "a", "localhost:8000", "Адрес и порт запуска сервиса")
+	flag.StringVar(&config.Address, "a", "localhost:7000", "Адрес и порт запуска сервиса")
 	flag.StringVar(&config.DatabaseURI, "d", "user=postgres password=postgres host=localhost database=yap-gophermart sslmode=disable", "Адрес подключения к базе данных")
 	flag.StringVar(&config.AccrualSystemAddress, "r", "http://accrual:8080", "Адрес подключения к базе данных")
 	flag.StringVar(&config.Secret, "s", "supersecretkey", "Секрет для JWT")

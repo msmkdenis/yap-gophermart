@@ -18,12 +18,12 @@ import (
 )
 
 type Config struct {
-	Address string `env:"ACCRUAL_RUN_ADDRESS" envDefault:"0.0.0.0:8000"`
+	Address string `env:"ACCRUAL_RUN_ADDRESS" envDefault:"0.0.0.0:8080"`
 }
 
 func Run() {
 	config := &Config{}
-	flag.StringVar(&config.Address, "a", "0.0.0.0:8000", "Адрес и порт запуска сервиса")
+	flag.StringVar(&config.Address, "a", "0.0.0.0:8080", "Адрес и порт запуска сервиса")
 
 	if err := env.Parse(config); err != nil {
 		fmt.Printf("%+v\n", err)
