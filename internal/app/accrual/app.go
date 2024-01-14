@@ -3,10 +3,13 @@ package accrual
 import (
 	"crypto/rand"
 	"errors"
+	"flag"
+	"fmt"
 	"log"
 	"math/big"
 	"net/http"
 
+	"github.com/caarlos0/env/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -14,7 +17,18 @@ import (
 	"github.com/msmkdenis/yap-gophermart/internal/middleware"
 )
 
+type Config struct {
+	Address string `env:"ACCRUAL_RUN_ADDRESS" envDefault:"0.0.0.0:8000"`
+}
+
 func Run() {
+	config := &Config{}
+	flag.StringVar(&config.Address, "a", "0.0.0.0:8000", "Адрес и порт запуска сервиса")
+
+	if err := env.Parse(config); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
 	logger, err := zap.NewProduction()
 	if err != nil {
 		log.Fatal("Unable to initialize zap logger", err)
@@ -49,7 +63,7 @@ func Run() {
 		return c.JSON(http.StatusOK, processedOrder)
 	})
 
-	errStart := e.Start("0.0.0.0:8000")
+	errStart := e.Start(config.Address)
 	if errStart != nil && !errors.Is(errStart, http.ErrServerClosed) {
 		log.Fatal(err)
 	}

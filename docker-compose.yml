@@ -6,10 +6,12 @@ services:
       context: .
       dockerfile: ./dockerfiles/accrual/Dockerfile
     image: accrual
-    container_name: http
+    container_name: accrual_system
     restart: always
+    environment:
+      - ACCRUAL_RUN_ADDRESS=${ACCRUAL_RUN_ADDRESS}
     ports:
-      - 7070:8000
+      - ${ACCRUAL_PORTS}
     depends_on:
       - postgres_db
 
@@ -21,13 +23,13 @@ services:
     container_name: yap_gophermart_server
     restart: always
     environment:
-      - RUN_ADDRESS=server:8000
-      - DATABASE_URI=postgres://postgres:postgres@postgres_db:5432/gophermart?sslmode=disable
-      - SECRET=supersecret
-      - TOKEN_NAME=token
-      - ACCRUAL_SYSTEM_ADDRESS=http://http:8000
+      - RUN_ADDRESS=${RUN_ADDRESS}
+      - DATABASE_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/${POSTGRES_DB}?sslmode=disable
+      - SECRET=${SECRET}
+      - TOKEN_NAME=${TOKEN_NAME}
+      - ACCRUAL_SYSTEM_ADDRESS=${ACCRUAL_SYSTEM_ADDRESS}
     ports:
-      - 8080:8000
+      - ${SERVER_PORTS}
     depends_on:
       - postgres_db
 
@@ -36,29 +38,35 @@ services:
     image: postgres:15.3
     container_name: gophermart_postgres_db
     restart: always
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=gophermart
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - 5436:5432
+      - ${DB_PORTS}
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data:${PG_DATA}
 
   pgadmin:
     image: dpage/pgadmin4:7.5
     container_name: gophermart_pgadmin
     restart: always
     ports:
-      - "5050:80"
+      - ${PG_ADMIN_PORTS}
     environment:
-      PGADMIN_DEFAULT_EMAIL: postgres@mail.com
-      PGADMIN_DEFAULT_PASSWORD: postgres
-    volumes:
-      - ./pgadmindata/servers.json:/pgadmin4/servers.json
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
       - postgres_db
+    volumes:
+      - pgadmin_data:${PG_ADMIN_DATA}
 
 volumes:
-  pg_data: {}
+  pg_data:
+  pgadmin_data:
