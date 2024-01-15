@@ -61,6 +61,7 @@ func (oc *OrderAccrualUseCase) Run() {
 			time.Sleep(300 * time.Millisecond)
 			tenOrders, err := oc.orderRepository.SelectTenOrders(context.Background())
 			if err != nil {
+				//oc.logger.Error("failed to select ten orders", zap.Error(err))
 				continue
 			}
 
@@ -68,7 +69,8 @@ func (oc *OrderAccrualUseCase) Run() {
 			limiter := ratelimit.New(10)
 			for _, order := range tenOrders {
 				wg.Add(1)
-				go oc.updateOrderBalance(&order, limiter, &wg)
+				orderToSend := order
+				go oc.updateOrderBalance(&orderToSend, limiter, &wg)
 			}
 
 			wg.Wait()

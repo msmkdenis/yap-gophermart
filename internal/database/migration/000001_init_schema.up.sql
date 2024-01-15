@@ -21,6 +21,10 @@ create table if not exists gophermart.order
     uploaded_at             timestamp default now() not null,
     status                  gophermart.order_status not null,
     accrual                 numeric(10,2),
+    accrual_started_at      timestamp,
+    accrual_finished_at     timestamp,
+    accrual_readiness       boolean default true not null,
+    accrual_count           integer default 0 not null,
     constraint pk_order primary key (id),
     constraint fk_user foreign key (user_login) references gophermart.user (login)  on update cascade
 );
