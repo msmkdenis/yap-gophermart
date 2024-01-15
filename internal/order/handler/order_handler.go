@@ -41,6 +41,20 @@ func NewOrderHandler(e *echo.Echo, service OrderService, logger *zap.Logger, jwt
 	return handler
 }
 
+// @Summary       Add new order
+// @Description   Loading by the user of the order number.
+// @Tags          Order API
+// @Accept        plain
+// @Param         order   body       string   true   "Order number."
+// @Success       200
+// @Success       202
+// @Failure       400
+// @Failure       401
+// @Failure       409
+// @Failure       422
+// @Failure       500
+// @Security      JWT
+// @Router        /api/user/orders [post]
 func (h *OrderHandler) AddOrder(c echo.Context) error {
 	userLogin, ok := c.Get("userLogin").(string)
 	if !ok {
@@ -84,6 +98,17 @@ func (h *OrderHandler) AddOrder(c echo.Context) error {
 	return c.NoContent(http.StatusAccepted)
 }
 
+// @Summary       Get uploaded orders
+// @Description   Get a list of order numbers uploaded by the user,
+// @Description   their processing statuses and information about accruals.
+// @Tags          Order API
+// @Produce       json
+// @Success       200    {array}    dto.OrderResponse
+// @Success       204
+// @Failure       401
+// @Failure       500
+// @Security      JWT
+// @Router        /api/user/orders [get]
 func (h *OrderHandler) GetOrders(c echo.Context) error {
 	userLogin, ok := c.Get("userLogin").(string)
 	if !ok {

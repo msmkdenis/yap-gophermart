@@ -43,6 +43,15 @@ func NewBalanceHandler(e *echo.Echo, service BalanceService, logger *zap.Logger,
 	return handler
 }
 
+// @Summary       Get user balance
+// @Description   Get the current balance of the user's loyalty points account.
+// @Tags          Balance API
+// @Produce       json
+// @Success       200    {object}   dto.BalanceResponse
+// @Failure       401
+// @Failure       500
+// @Security      JWT
+// @Router        /api/user/balance [get]
 func (h *BalanceHandler) GetBalance(c echo.Context) error {
 	userLogin, ok := c.Get("userLogin").(string)
 	if !ok {
@@ -59,6 +68,16 @@ func (h *BalanceHandler) GetBalance(c echo.Context) error {
 	return c.JSON(http.StatusOK, balance)
 }
 
+// @Summary       Get withdrawals list
+// @Description   Get a list of withdrawals from a user's loyalty points account.
+// @Tags          Balance API
+// @Produce       json
+// @Success       200    {array}     dto.WithdrawalResponse
+// @Success       204
+// @Failure       401
+// @Failure       500
+// @Security      JWT
+// @Router        /api/user/withdrawals [get]
 func (h *BalanceHandler) GetWithdrawals(c echo.Context) error {
 	userLogin, ok := c.Get("userLogin").(string)
 	if !ok {
@@ -80,6 +99,18 @@ func (h *BalanceHandler) GetWithdrawals(c echo.Context) error {
 	return c.JSON(http.StatusOK, withdrawals)
 }
 
+// @Summary       Withdrawal request
+// @Description   Withdraw points from the loyalty points account to pay for a new order.
+// @Tags          Balance API
+// @Accept        json
+// @Param         withdrawal   body       dto.BalanceWithdrawRequest   true   "Order number and withdrawal sum."
+// @Success       200
+// @Failure       401
+// @Failure       402
+// @Failure       422
+// @Failure       500
+// @Security      JWT
+// @Router        /api/user/balance/withdraw [post]
 func (h *BalanceHandler) Withdraw(c echo.Context) error {
 	userLogin, ok := c.Get("userLogin").(string)
 	if !ok {

@@ -1,0 +1,240 @@
+definitions:
+  dto.BalanceResponse:
+    properties:
+      current:
+        type: number
+      withdrawn:
+        type: number
+    type: object
+  dto.BalanceWithdrawRequest:
+    properties:
+      order:
+        type: string
+      sum:
+        type: number
+    required:
+    - order
+    - sum
+    type: object
+  dto.OrderResponse:
+    properties:
+      accrual:
+        type: number
+      number:
+        type: string
+      status:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  dto.UserLoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  dto.UserRegisterRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  dto.WithdrawalResponse:
+    properties:
+      order:
+        type: string
+      processed_at:
+        type: string
+      sum:
+        type: number
+    type: object
+host: localhost:7000
+info:
+  contact: {}
+  title: Swagger Gophermart API
+  version: "1.0"
+paths:
+  /api/user/balance:
+    get:
+      description: Get the current balance of the user's loyalty points account.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.BalanceResponse'
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - JWT: []
+      summary: Get user balance
+      tags:
+      - Balance API
+  /api/user/balance/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw points from the loyalty points account to pay for a new
+        order.
+      parameters:
+      - description: Order number and withdrawal sum.
+        in: body
+        name: withdrawal
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BalanceWithdrawRequest'
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+        "402":
+          description: Payment Required
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      security:
+      - JWT: []
+      summary: Withdrawal request
+      tags:
+      - Balance API
+  /api/user/login:
+    post:
+      consumes:
+      - application/json
+      description: User authorization by login and password.
+      parameters:
+      - description: User login and password.
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLoginRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: User authorization
+      tags:
+      - User API
+  /api/user/orders:
+    get:
+      description: |-
+        Get a list of order numbers uploaded by the user,
+        their processing statuses and information about accruals.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.OrderResponse'
+            type: array
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - JWT: []
+      summary: Get uploaded orders
+      tags:
+      - Order API
+    post:
+      consumes:
+      - text/plain
+      description: Loading by the user of the order number.
+      parameters:
+      - description: Order number.
+        in: body
+        name: order
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "409":
+          description: Conflict
+        "422":
+          description: Unprocessable Entity
+        "500":
+          description: Internal Server Error
+      security:
+      - JWT: []
+      summary: Add new order
+      tags:
+      - Order API
+  /api/user/register:
+    post:
+      consumes:
+      - application/json
+      description: User registration by login and password.
+      parameters:
+      - description: User login and password.
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRegisterRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+      summary: User registration
+      tags:
+      - User API
+  /api/user/withdrawals:
+    get:
+      description: Get a list of withdrawals from a user's loyalty points account.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.WithdrawalResponse'
+            type: array
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - JWT: []
+      summary: Get withdrawals list
+      tags:
+      - Balance API
+swagger: "2.0"

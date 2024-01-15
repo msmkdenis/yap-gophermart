@@ -41,6 +41,16 @@ func NewUserHandler(e *echo.Echo, service UserService, jwtManager *utils.JWTMana
 	return handler
 }
 
+// @Summary       User registration
+// @Description   User registration by login and password.
+// @Tags          User API
+// @Accept        json
+// @Param         user   body       dto.UserRegisterRequest   true   "User login and password."
+// @Success       200
+// @Failure       400
+// @Failure       409
+// @Failure       500
+// @Router        /api/user/register [post]
 func (h *UserHandler) RegisterUser(c echo.Context) error {
 	header := c.Request().Header.Get("Content-Type")
 	if header != "application/json" {
@@ -82,6 +92,16 @@ func (h *UserHandler) RegisterUser(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// @Summary       User authorization
+// @Description   User authorization by login and password.
+// @Tags          User API
+// @Accept        json
+// @Param         user   body       dto.UserLoginRequest   true   "User login and password."
+// @Success       200
+// @Failure       400
+// @Failure       401
+// @Failure       500
+// @Router        /api/user/login [post]
 func (h *UserHandler) LoginUser(c echo.Context) error {
 	header := c.Request().Header.Get("Content-Type")
 	if header != "application/json" {
