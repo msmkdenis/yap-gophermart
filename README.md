@@ -34,7 +34,8 @@
 - [Docker compose](https://docs.docker.com/compose/install/)
 
 Скопировать проект `git clone` и выполнить команду из корня `docker compose up`
-Для тестирования приложения [коллекция `postman` запросов](Gophermart.postman_collection.json)
+
+Для тестирования приложения можно воспользоваться [коллекцией `postman` запросов](Gophermart.postman_collection.json)
 
 ### Особенности проекта в т.ч. сложности, возникшие в процессе
 Проект прежде всего учебный, поэтому считаю возможным уточнить некоторые решенные нюансы:
