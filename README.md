@@ -64,6 +64,7 @@
         from gophermart."order"
         where status not in ('INVALID', 'PROCESSED') and accrual_readiness = true
         order by uploaded_at desc
+        for update skip locked
     limit 10)
   returning
     id, number, user_login, uploaded_at, coalesce(accrual, 0), status;
