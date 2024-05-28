@@ -12,8 +12,6 @@ RUN go mod download
 # Копируем исходный код из текущего каталога в рабочий каталог внутри контейнера.
 COPY . .
 
-ENTRYPOINT go run cmd/gophermart/main.go
-
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o gophermart ./cmd/gophermart/main.go
 
 FROM alpine:3.19
