@@ -1,12 +1,24 @@
-FROM golang:1.21.3-alpine3.17
+FROM golang:1.21.3-alpine AS builder
 
+# Создаем и переходим в директорию приложения.
 WORKDIR /app
 
-COPY ../.. /app
+# Копируем go.mod и go.sum для загрузки зависимостей.
+COPY go.mod go.sum ./
 
+# Загружаем все зависимости. Зависимости будут кэшированы, если файлы go.mod и go.sum не были изменены.
 RUN go mod download
 
-ENTRYPOINT go run cmd/mockaccrual/main.go
+# Копируем исходный код из текущего каталога в рабочий каталог внутри контейнера.
+COPY . .
 
-# command to be used to execute when the image is used to start a container
-CMD [ "/mockaccrual" ]
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o mockaccrual ./cmd/mockaccrual/main.go
+
+FROM alpine:3.19
+
+# перемещаем исполняемый и другие файлы в нужную директорию
+WORKDIR /app/
+
+COPY --from=builder --chown=app:app app .
+
+CMD ["./mockaccrual"]
